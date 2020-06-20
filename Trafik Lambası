@@ -1,0 +1,252 @@
+/*
+ * Buda Bizden Olsun
+ */
+
+ #include <LiquidCrystal_I2C.h>
+ #include <Wire.h>
+ LiquidCrystal_I2C lcd (0x27, 16,2);
+int lamp_car_r = 2;
+int lamp_car_y = 3;
+int lamp_car_g = 4; 
+
+int lamp_people_r  = 6;
+int lamp_people_g  = 7;
+
+int lamp_car2_r = 8;
+int lamp_car2_y = 9;
+int lamp_car2_g = 10; 
+
+int lamp_people2_r  = 11;
+int lamp_people2_g  = 12;
+
+int print_state = 0;
+
+void setup() {
+
+pinMode (lamp_car_r, OUTPUT);
+pinMode (lamp_car_y, OUTPUT);
+pinMode (lamp_car_g, OUTPUT);
+
+pinMode (lamp_people_r, OUTPUT);
+pinMode (lamp_people_g, OUTPUT); 
+
+pinMode (lamp_car2_r, OUTPUT);
+pinMode (lamp_car2_y, OUTPUT);
+pinMode (lamp_car2_g, OUTPUT);
+
+pinMode (lamp_people2_r, OUTPUT);
+pinMode (lamp_people2_g, OUTPUT); 
+
+Serial.begin (9600);
+print_state =1;
+show_state ();
+
+LCD_init ();
+
+
+
+
+}
+
+void loop() {
+
+
+  digitalWrite (lamp_car_r, HIGH);
+  digitalWrite (lamp_car_y, LOW);
+  digitalWrite (lamp_car_g, LOW);
+ 
+
+  print_state =2;
+  show_state ();
+  
+  digitalWrite (lamp_car2_r, LOW);
+  digitalWrite (lamp_car2_y, LOW);
+  digitalWrite (lamp_car2_g, HIGH);
+
+  print_state =3;
+  show_state ();
+  
+   
+  digitalWrite (lamp_people_r, LOW);
+  digitalWrite (lamp_people_g, HIGH);
+
+  print_state =4;
+  show_state ();
+  
+  digitalWrite (lamp_people2_r, HIGH);
+  digitalWrite (lamp_people2_g, LOW);
+
+  print_state =5;
+  show_state ();
+  
+  delay (8000);
+  
+  digitalWrite (lamp_car_r, LOW);
+  digitalWrite (lamp_car_y, HIGH);
+  digitalWrite (lamp_car_g, LOW);
+
+  digitalWrite (lamp_car2_r, LOW);
+  digitalWrite (lamp_car2_y, HIGH);
+  digitalWrite (lamp_car2_g, LOW);
+
+  print_state =6;
+  show_state ();
+  
+  digitalWrite (lamp_people_r, HIGH);
+  digitalWrite (lamp_people_g, LOW);
+
+  digitalWrite (lamp_people2_r, HIGH);
+  digitalWrite (lamp_people2_g, LOW);
+
+  print_state =7;
+  show_state ();
+      
+  delay (2000);
+
+  digitalWrite (lamp_car_r, LOW);
+  digitalWrite (lamp_car_y, LOW);
+  digitalWrite (lamp_car_g, HIGH);
+
+  print_state =8;
+  show_state ();
+  
+  
+  digitalWrite (lamp_car2_r, HIGH);
+  digitalWrite (lamp_car2_y, LOW);
+  digitalWrite (lamp_car2_g, LOW);
+
+  print_state =9;
+  show_state ();
+  
+ digitalWrite (lamp_people_r, HIGH);
+ digitalWrite (lamp_people_g, LOW);
+
+ print_state =10;
+ show_state ();
+ 
+ digitalWrite (lamp_people2_r, LOW);
+ digitalWrite (lamp_people2_g, HIGH);
+
+ print_state =11;
+ show_state ();
+  
+  delay (8000);
+  
+  digitalWrite (lamp_car_r, LOW);
+  digitalWrite (lamp_car_y, HIGH);
+  digitalWrite (lamp_car_g, LOW);
+
+  digitalWrite (lamp_car2_r, LOW);
+  digitalWrite (lamp_car2_y, HIGH);
+  digitalWrite (lamp_car2_g, LOW);
+
+  print_state =6;
+  show_state ();
+
+  digitalWrite (lamp_people_r, HIGH);
+  digitalWrite (lamp_people_g, LOW);
+
+  digitalWrite (lamp_people2_r, HIGH);
+  digitalWrite (lamp_people2_g, LOW);
+
+  print_state =7;
+  show_state ();
+  
+  delay (2000); 
+}
+
+
+void show_state (void){
+
+
+  switch (print_state) {
+  case 1: Serial.print ("\r\n ***Buda Bizden Olsun***");
+  break;
+  
+  case 2: Serial.print ("\r\n         ");
+          Serial.print ("\r\n 1. Yol için : Kırmızı Yandı");
+          Serial.print ("\r\n         ");
+        
+  break;
+  
+  case 3: Serial.print ("\r\n         "); 
+          Serial.print ("\r\b\b 2. Yol için : Yeşil Yandı");
+          Serial.print ("\r\n         "); 
+  break;
+
+  case 4: Serial.print ("\r\n              "); 
+          Serial.print ("\r\f 1. Yaya için: Yeşil Yandı");
+          Serial.print ("\r\n         "); 
+
+          lcd.setCursor (0,1);
+          lcd.print ("GEC");
+          
+  break;
+
+  case 5: Serial.print ("\r\n                   "); 
+          Serial.print ("\r\f\f 2. Yaya için: Kırmızı Yandı");
+          Serial.print ("\r\n         "); 
+
+           lcd.setCursor (8,1);
+          lcd.print ("DUR");
+  break;
+
+  case 6: Serial.print ("\r\n    "); 
+          Serial.print ("\b\b\b 1. ve 2. Yol için : Sarı Yandı");
+          Serial.print ("\r\n         "); 
+  break;
+
+  case 7: Serial.print ("\r\n       "); 
+          Serial.print ("\f\f\f 1. ve 2. Yaya için : Kırmızı Yandı");
+          Serial.print ("\r\n         "); 
+
+          lcd.setCursor (0,1);
+          lcd.print ("DUR");
+          lcd.setCursor (8,1);
+          lcd.print ("DUR");
+  break;
+
+  case 8: Serial.print ("\r\n         ");
+          Serial.print ("\r\n 1. Yol için : Yeşil Yandı");
+          Serial.print ("\r\n         ");
+          
+          
+
+  break;
+
+  case 9: Serial.print ("\r\n         "); 
+          Serial.print ("\r\b\b 2. Yol için : Kırmızı Yandı");
+          Serial.print ("\r\n         "); 
+  break;
+
+  case 10: Serial.print ("\r\n              "); 
+          Serial.print ("\r\f 1. Yaya için: Kırmızı Yandı");
+          Serial.print ("\r\n         "); 
+
+          lcd.setCursor (0,1);
+          lcd.print ("DUR");
+  break;
+
+  case 11: Serial.print ("\r\n                   "); 
+          Serial.print ("\r\f\f 2. Yaya için: Yeşil Yandı");
+          Serial.print ("\r\n         ");
+
+          lcd.setCursor (8,1);
+          lcd.print ("GEC");
+   break;
+ }
+}
+
+void LCD_init (void) {
+
+  lcd.init ();
+  delay (10);
+  lcd.backlight ();
+  lcd.clear ();
+  
+  lcd.setCursor (0,0);
+  lcd.print ("1.YAYA");
+  lcd.setCursor (8,0);
+  lcd.print ("2.YAYA");
+  
+}
