@@ -1,0 +1,264 @@
+/*
+ * Buda Bizden Olsun
+ * 
+ * https://www.youtube.com/channel/UCVnVbX4pFV01Nu7zUbV8exA
+ */
+
+
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+
+#include <Servo.h>
+LiquidCrystal_I2C lcd (0x27, 16, 2);
+
+Servo servo_1;
+Servo servo_2;
+
+int servoPos = 0 || 20;
+
+// Otopark Girişi / Parking Entrance 
+int trigPin_1 = 3;
+int echoPin_1 = 2;
+long sure_1;
+long uzaklik_1;
+
+
+// Otopark Çıkışı / Parking Exit
+int trigPin_2 = 7;
+int echoPin_2 = 6;
+long sure_2;
+long uzaklik_2;
+
+int led_red_1   = 8;  // Ototpark Girişi - Parking Entrance
+int led_green_1 = 9;
+
+int led_red_2    = 10; // Otopark Çıkışı - Parking Exit
+int led_green_2  = 11;
+
+int print_state = 0;
+
+int capacity = 0;
+
+  void enter_parking (){
+
+  
+digitalWrite (trigPin_1, LOW);
+delayMicroseconds  (5);
+digitalWrite (trigPin_1, HIGH);
+delayMicroseconds (10);
+digitalWrite (trigPin_1, LOW);
+sure_1 = pulseIn (echoPin_1, HIGH);
+uzaklik_1 = sure_1 / 29.1 / 2;
+delay (500);
+
+print_state = 1;
+show_state ();
+
+
+if (uzaklik_1 <= 20) {
+  if (capacity <20) {
+  servo_1.write (90);
+  delay (1000);
+
+  digitalWrite (led_red_1, LOW);
+  digitalWrite (led_green_1, HIGH);
+
+  print_state = 2;
+  show_state ();
+}}
+else {
+  servo_1.write (0);
+  delay (500);
+
+  digitalWrite (led_red_1, HIGH);
+  digitalWrite (led_green_1, LOW);
+
+print_state = 3;
+show_state ();
+}
+}
+
+void exit_parking (void) {
+  
+digitalWrite (trigPin_2, LOW);
+delayMicroseconds (5);
+digitalWrite (trigPin_2, HIGH);
+delayMicroseconds (10);
+digitalWrite (trigPin_2, LOW);
+sure_2 = pulseIn (echoPin_2, HIGH);
+uzaklik_2 = sure_2 / 29.1 / 2;
+delay (250);
+
+print_state = 4;
+show_state ();
+
+if (uzaklik_2 <= 20) {
+  servo_2.write (90);
+  delay (1000);
+
+  digitalWrite (led_red_2, LOW);
+  digitalWrite (led_green_2, HIGH);
+
+  print_state = 5;
+  show_state (); 
+}
+
+else {
+  servo_2.write (0);
+  delay (500);
+
+  digitalWrite (led_red_2, HIGH);
+  digitalWrite (led_green_2, LOW);
+
+  print_state = 6;
+  show_state ();
+}
+}
+
+
+
+void capacity_car (void) {
+
+  if (uzaklik_1 <10 || uzaklik_1<0){
+    if (capacity <20) 
+    {
+      capacity++;
+      delay (100);
+
+
+  print_state = 7;
+  show_state ();
+
+    }
+    else {}
+    delay (100);
+  }
+  if (uzaklik_2 <10 || uzaklik_2 <0) {
+    if (capacity >0){
+
+      capacity--;
+      delay (100);
+
+
+  print_state = 8;
+  show_state ();
+  
+    }
+    else {}
+    delay (100); 
+  }
+}
+
+
+void show_state (void){
+  lcd.setCursor (0,0);
+  lcd.print ("Car Parking");
+  lcd.setCursor (0,1);
+
+             Serial.print ("\n          ");
+             Serial.print ("\n Otopark Kapasitesi : ");
+             Serial.println (capacity);
+             Serial.print ("\n          ");
+  
+  switch (print_state) {
+     case 1 : 
+              Serial.print ("\n Uzaklık_1 : ");
+              Serial.print (uzaklik_1);
+              Serial.print ("\r cm");             
+     break;
+
+     case 2 :lcd.print ("entry");
+              Serial.print ("\n          ");
+              Serial.print ("\n         Giriş Bariyeri Açık ");
+              Serial.print ("\n          ");
+     break;
+     case 3 :lcd.print (" wait   ");
+              Serial.print ("\n          ");
+              Serial.print ("\n                  Giriş Bariyeri Kapalı ");
+              Serial.print ("\n          ");
+     break;
+     case 4 :
+              Serial.print ("\n Uzaklık_2 : ");
+              Serial.print (uzaklik_2);
+              Serial.print ("\r cm");
+      break;
+      case 5 :lcd.print (" exit    ");
+              Serial.print ("\n          ");
+              Serial.print ("\n         Çıkış Bariyeri Açık ");
+              Serial.print ("\n          ");
+       break;
+       case 6 :lcd.print (" wait  ");
+              Serial.print ("\n          ");
+              Serial.print ("\n                  Çıkış Bariyeri Kapalı ");
+              Serial.print ("\n          ");
+     break;     
+     default :
+     break;
+     
+  }
+
+ switch (print_state) {
+      case 7 :
+             lcd.setCursor (10,1);
+             lcd.print ("20/");
+             lcd.setCursor (14,1);
+             lcd.print (capacity);
+      break;
+  
+      case 8 : 
+             lcd.setCursor (10,1);
+             lcd.print ("20/");
+             lcd.setCursor (14,1);
+             lcd.print (capacity);
+            
+      break;
+      default:
+      break;
+ }
+}
+
+
+void LCD_init (void) {
+  lcd.init ();
+  delay (10);
+  lcd.backlight ();
+  lcd.clear ();
+  
+}
+
+void setup() {
+  
+ servo_1.attach (A2); // Otopark Girişi - Parking Entrance
+ servo_2.attach (A3); // Otopark Çıkışı - Parking Exit
+
+ pinMode (trigPin_1, OUTPUT);
+ pinMode (echoPin_2, INPUT);
+
+ pinMode (trigPin_2, OUTPUT);
+ pinMode (echoPin_2, INPUT);
+
+
+pinMode (led_red_1, OUTPUT);
+pinMode (led_green_1, OUTPUT);
+
+pinMode (led_red_2, OUTPUT);
+pinMode (led_green_2, OUTPUT);
+
+ Serial.begin (9600);
+
+ print_state = 1;
+ show_state (); 
+ LCD_init ();
+
+ lcd.setCursor (0,0);
+ lcd.print ("BudaBizdenOlsun");
+ delay (500);
+
+}
+
+void loop() {
+
+  enter_parking ();
+  exit_parking ();
+  capacity_car ();
+}
