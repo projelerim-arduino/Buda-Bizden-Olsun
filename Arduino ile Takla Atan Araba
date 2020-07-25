@@ -1,0 +1,208 @@
+/*
+ * Buda Bizden Olsun
+ * 
+ * https://www.youtube.com/channel/UCVnVbX4pFV01Nu7zUbV8exA
+ * 
+ * Eski bir takla atan arabayı Arduino ve Bluetooth kullanarak
+ * yeni bir takla atan araba yapmaya çalıştık.
+ */
+
+unsigned char Bluetooth_val;       l
+
+#define Lpwm_pin  7   // L298N pin ENA  
+#define Rpwm_pin  6   // L298N pin ENB
+
+int pinLB=2;     // L298N pin EN1
+int pinLF=3;     // L298N pin EN2
+int pinRB=4;     // L298N pin EN3
+int pinRF=5;     // L298N pin EN4
+
+unsigned char Lpwm_val = 255;
+unsigned char Rpwm_val = 255;
+
+int Car_state=0;
+
+int light   = 12;  // Ön farlar
+int horn    = 13; // Korna
+
+void Car_Control(void)
+{
+  pinMode(pinLB,OUTPUT); 
+  pinMode(pinLF,OUTPUT); 
+  pinMode(pinRB,OUTPUT); 
+  pinMode(pinRF,OUTPUT); 
+  pinMode(Lpwm_pin,OUTPUT); 
+  pinMode(Rpwm_pin,OUTPUT);  
+
+  pinMode (light, OUTPUT);
+  pinMode (horn, OUTPUT);
+}
+void Set_Speed(unsigned char Left,unsigned char Right)
+{
+  analogWrite(Lpwm_pin,Left);
+  analogWrite(Rpwm_pin,Right);
+}
+
+void go_forward ()     //  ileri hareket / going forward
+    {
+     digitalWrite(pinRB,LOW);  
+     digitalWrite(pinRF,LOW);
+     digitalWrite(pinLB,HIGH);  
+     digitalWrite(pinLF,LOW); 
+
+     digitalWrite (light, LOW);
+     digitalWrite (horn, LOW);
+           
+     Car_state = 1; 
+     show_state();   
+    }
+
+void turn_right()        //sağa dönüş / turning right(dual wheel)
+    {
+     digitalWrite(pinRB,LOW);  
+     digitalWrite(pinRF,HIGH);
+     digitalWrite(pinLB,LOW);
+     digitalWrite(pinLF,LOW);  
+     
+     digitalWrite (light, HIGH);    
+     digitalWrite (horn, LOW);
+  
+     Car_state = 4;
+     show_state();
+    }
+
+void turn_left()        // sola dönüş / turning left(dual wheel)
+    {
+     digitalWrite(pinRB,HIGH);
+     digitalWrite(pinRF,LOW );   
+     digitalWrite(pinLB,LOW);   
+     digitalWrite(pinLF,LOW);
+     
+     digitalWrite (light, HIGH);
+     digitalWrite (horn, LOW);
+     
+     Car_state = 3;
+     show_state();
+    }    
+
+void car_stop()         //durma / stop
+    {
+     digitalWrite(pinRB,HIGH);
+     digitalWrite(pinRF,HIGH);
+     digitalWrite(pinLB,HIGH);
+     digitalWrite(pinLF,HIGH);
+  
+     digitalWrite (light, LOW);
+     digitalWrite (horn, LOW);
+
+     Car_state = 5;
+     show_state();
+    }
+
+void back()          // geri hareket / back up
+    {
+     digitalWrite(pinRB,LOW);  
+     digitalWrite(pinRF,LOW);
+     digitalWrite(pinLB,LOW);  
+     digitalWrite(pinLF,HIGH);
+   
+     digitalWrite (light, LOW);
+     digitalWrite (horn, HIGH);
+     
+     Car_state = 2;
+     show_state() ;    
+    }
+   
+ void light_F ()
+ {
+  digitalWrite (light, HIGH);
+
+  Car_state = 6;
+  show_state() ; 
+ }
+
+  void light_Fs ()
+ {
+  digitalWrite (light, LOW);
+
+  Car_state = 7;
+  show_state() ; 
+ }
+
+ void horns ()
+ {
+  digitalWrite (horn, HIGH);
+ }
+
+  void horns_s ()
+ {
+  digitalWrite (horn, LOW);
+ }
+void show_state(void)
+{
+     switch(Car_state)
+   {
+     case 1: Serial.print ("\n GO");         
+     break;
+     case 2: Serial.print ("\n BACK");
+                   
+     break;
+     case 3: Serial.print ("\n LEFT"); 
+             Serial.print ("\n ........  light");        
+     break;
+     case 4: Serial.print ("\n RIGHT");
+             Serial.print ("\n ........  light");          
+     break;
+     case 5: Serial.print ("\n STOP");
+             
+     break;
+     case 6 : Serial.print ("\n .........  light");
+     break;
+     case 7 : Serial.print ("\n .........  horn");
+     break;
+    
+     default:
+     break;
+   }
+}              
+
+void setup() 
+{ 
+  
+   Car_Control ();
+   Set_Speed(Lpwm_val,Rpwm_val);
+   Serial.begin(9600);   
+  
+   car_stop(); 
+}
+
+void loop() 
+{  
+  
+   if(Serial.available()) 
+    {
+     Bluetooth_val=Serial.read();  
+    switch(Bluetooth_val)                     
+     {
+       case 'F' : go_forward(); //UP
+       break;
+       case 'B' : back();   //back
+       break;
+       case 'L' : turn_left();   //Left
+       break;
+       case 'R' : turn_right();  //Right
+       break;
+       case 'S' : car_stop();    //stop
+       break;   
+       case 'W' : light_F (); // front light on
+       break;
+       case 'w' : light_Fs (); // front light off
+       break;
+       case 'V' : horns (); // back light on
+       break;
+       case 'v' : horns_s (); // back light off
+       break;
+       
+     }
+    } 
+}
