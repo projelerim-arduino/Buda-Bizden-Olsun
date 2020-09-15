@@ -1,0 +1,444 @@
+# Buda-Bizden-Olsun
+Buda Bizden Olsun farkı ile 
+/*
+ * Buda Bizden Olsun
+ * 
+ * ARDUINO ILE RFID KULLANARAK KAPI KILIDI YAPMA
+ * 
+ *  
+ * * * Typical pin layout used:
+ * -----------------------------------------------------------------------------------------
+ *             MFRC522      Arduino       Arduino   Arduino    Arduino          Arduino
+ *             Reader/PCD   Uno/101       Mega      Nano v3    Leonardo/Micro   Pro Micro
+ * Signal      Pin          Pin           Pin       Pin        Pin              Pin
+ * -----------------------------------------------------------------------------------------
+ * RST/Reset   RST          9             5         D9         RESET/ICSP-5     RST
+ * SPI SS      SDA(SS)      10            53        D10        10               10
+ * SPI MOSI    MOSI         11 / ICSP-4   51        D11        ICSP-4           16
+ * SPI MISO    MISO         12 / ICSP-1   50        D12        ICSP-1           14
+ * SPI SCK     SCK          13 / ICSP-3   52        D13        ICSP-3           15
+ */
+ 
+#include <Wire.h>
+
+#include <LiquidCrystal_I2C.h> 
+
+LiquidCrystal_I2C LCD (0x27,16,2); 
+
+#include <EEPROM.h>
+#include <MFRC522.h>
+
+#define RST_PIN         9          // Configurable, see typical pin layout above
+#define SS_PIN          10         // Configurable, see typical pin layout above
+
+#define ROLE1_PIN       8 
+#define ROLE2_PIN       7
+
+MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
+
+//byte carKey[] = {0x73, 0xF7, 0x19, 0xBC};
+//A1 BC AE DB
+
+byte carKey1[] = {0x5D, 0xC9, 0x1C, 0x53};
+byte carKey2[] = {0x06, 0xAD, 0xAE, 0xDB};
+byte carKey3[] = {0x12, 0xAD, 0x1B, 0x73};
+byte carKey4[] = {0xB5, 0xF6, 0x1C, 0xFD};
+byte carKey5[] = {0x66, 0x53, 0xAF, 0xDB};
+byte carKey6[] = {0xFD, 0x43, 0xAF, 0xDB};
+byte carKey7[] = {0xF9, 0xC4, 0xFC, 0x0E};
+byte carKey8[] = {0xEA, 0x3A, 0xAF, 0xDB};
+byte carKey9[] = {0x93, 0x37, 0xAE, 0xDB};
+byte carKey10[] = {0x00, 0x4E, 0xAF, 0xDB};
+byte carKey11[] = {0x99, 0xB0, 0x45, 0x5A};
+byte carKey12[] = {0x6D, 0x62, 0xAE, 0xDB};
+byte carKey13[] = {0x52, 0xE4, 0xAE, 0xDB};
+byte carKey14[] = {0xF5, 0x24, 0xAF, 0xDB};
+byte carKey15[] = {0x81, 0x57, 0xAF, 0xDB};
+byte carKey16[] = {0xD4, 0xCB, 0xAF, 0xDB};
+byte carKey17[] = {0xE7, 0xDF, 0xF5, 0x59};
+byte carKey18[] = {0xB8, 0x20, 0xF6, 0x59};
+byte carKey19[] = {0x66, 0xDD, 0xAE, 0xDB};
+byte carKey20[] = {0x41, 0x3C, 0x26, 0x23};
+byte carKey21[] = {0x76, 0x83, 0xAE, 0xDB};
+byte carKey22[] = {0x68, 0x74, 0x98, 0x0E};
+byte carKey23[] = {0x54, 0x66, 0xAF, 0xDB};
+byte carKey24[] = {0x68, 0x3F, 0xAF, 0xDB};
+byte carKey25[] = {0x54, 0x34, 0xAF, 0xDB};
+byte carKey26[] = {0x92, 0x2E, 0xAF, 0xDB};
+byte carKey27[] = {0x13, 0x66, 0xAF, 0xDB};
+byte carKey28[] = {0x86, 0x42, 0x39, 0x10};
+byte carKey29[] = {0x43, 0x01, 0xA0, 0x23};
+byte carKey30[] = {0x9A, 0x56, 0x2A, 0x10};
+byte carKey31[] = {0x3A, 0x36, 0x01, 0x10};
+byte carKey32[] = {0x0A, 0xF3, 0x55, 0x10};
+byte carKey33[] = {0xEA, 0x64, 0x2B, 0x10};  
+byte carKey34[] = {0x7A, 0xE8, 0x2A, 0x10};
+byte carKey35[] = {0xFB, 0x23, 0x45, 0x21};
+
+/*  This variable is the x Position on the e-Paper panel screen */
+int xPosition = 10;
+
+bool dump_byte_array(byte *buffer, byte bufferSize) {
+
+  bool hata1 = true;
+  bool hata2 = true;
+  bool hata3 = true;
+  bool hata4 = true;
+  bool hata5 = true;
+  bool hata6 = true;
+  bool hata7 = true;
+  bool hata8 = true;
+  bool hata9  = true;
+  bool hata10  = true;
+  bool hata11  = true;
+  bool hata12  = true;
+  bool hata13  = true;
+  bool hata14  = true;
+  bool hata15  = true;
+  bool hata16  = true;
+  bool hata17  = true;
+  bool hata18  = true;
+  bool hata19  = true;
+  bool hata20  = true;
+  bool hata21  = true;
+  bool hata22  = true;
+  bool hata23  = true;
+  bool hata24  = true;
+  bool hata25  = true;
+  bool hata26  = true;
+  bool hata27  = true;
+  bool hata28 = true;
+  bool hata29 = true;
+  bool hata30 = true;
+  bool hata31 = true;
+  bool hata32 = true;
+  bool hata33 = true;
+  bool hata34 = true;
+  bool hata35 = true;
+  bool hata  = true;
+
+  if (bufferSize == 4)
+  {
+    for (byte i = 0; i < bufferSize; i++)
+    {
+      if ( (buffer[i] != carKey1[i]) )
+      {
+        hata1 = false;
+      }
+      if ( (buffer[i] != carKey2[i]) )
+      {
+        hata2 = false;
+      }
+      if ( (buffer[i] != carKey3[i]) )
+      {
+        hata3 = false;
+      }
+      if ( (buffer[i] != carKey4[i]) )
+      {
+        hata4 = false;
+      }
+      if ( (buffer[i] != carKey5[i]) )
+      {
+        hata5 = false;
+      }
+      if ( (buffer[i] != carKey6[i]) )
+      {
+        hata6 = false;
+      }
+      if ( (buffer[i] != carKey7[i]) )
+      {
+        hata7 = false;
+      }
+      if ( (buffer[i] != carKey8[i]) )
+      {
+        hata8 = false;
+      }
+      if ( (buffer[i] != carKey9[i]) )
+      {
+        hata9 = false;
+      }
+      if ( (buffer[i] != carKey10[i]) )
+      {
+        hata10 = false;
+      }
+      if ( (buffer[i] != carKey11[i]) )
+      {
+        hata11 = false;
+      }
+      if ( (buffer[i] != carKey12[i]) )
+      {
+        hata12 = false;
+      }
+      if ( (buffer[i] != carKey13[i]) )
+      {
+        hata13 = false;
+      }
+      if ( (buffer[i] != carKey14[i]) )
+      {
+        hata14 = false;
+      }
+      if ( (buffer[i] != carKey15[i]) )
+      {
+        hata15 = false;
+      }
+      if ( (buffer[i] != carKey16[i]) )
+      {
+        hata16 = false;
+      }
+      if ( (buffer[i] != carKey17[i]) )
+      {
+        hata17 = false;
+      }
+      if ( (buffer[i] != carKey18[i]) )
+      {
+        hata18 = false;
+      }
+      if ( (buffer[i] != carKey19[i]) )
+      {
+        hata19 = false;
+      }
+      if ( (buffer[i] != carKey20[i]) )
+      {
+        hata20 = false;
+      }
+      if ( (buffer[i] != carKey21[i]) )
+      {
+        hata21 = false;
+      }
+      if ( (buffer[i] != carKey22[i]) )
+      {
+        hata22 = false;
+      }
+      if ( (buffer[i] != carKey23[i]) )
+      {
+        hata23 = false;
+      }
+      if ( (buffer[i] != carKey24[i]) )
+      {
+        hata24 = false;
+      }
+      if ( (buffer[i] != carKey25[i]) )
+      {
+        hata25 = false;
+      }
+      if ( (buffer[i] != carKey26[i]) )
+      {
+        hata26 = false;
+      }
+      if ( (buffer[i] != carKey27[i]) )
+      {
+        hata27 = false;
+      }
+      if ( (buffer[i] != carKey28[i]) )
+      {
+        hata28 = false;
+      }
+      if ( (buffer[i] != carKey29[i]) )
+      {
+        hata29 = false;
+      }
+      if ( (buffer[i] != carKey30[i]) )
+      {
+        hata30 = false;
+      }
+      if ( (buffer[i] != carKey31[i]) )
+      {
+        hata31 = false;
+      }
+      if ( (buffer[i] != carKey32[i]) )
+      {
+        hata32 = false;
+      }
+      if ( (buffer[i] != carKey33[i]) )
+      {
+        hata33 = false;
+      }
+      if ( (buffer[i] != carKey34[i]) )
+      {
+        hata34 = false;
+      }
+      if ( (buffer[i] != carKey35[i]) )
+      {
+        hata35 = false;
+      }
+    }
+  }
+  else
+  {
+    hata1 = false;
+    hata2 = false;
+    hata3 = false;
+    hata4 = false;
+    hata5 = false;
+    hata6 = false;
+    hata7 = false;
+    hata8 = false;
+    hata9 = false;
+    hata10 = false;
+    hata11 = false;
+    hata12 = false;
+    hata13 = false;
+    hata14 = false;
+    hata15 = false;
+    hata16 = false;
+    hata17 = false;
+    hata18 = false;
+    hata19 = false;
+    hata20 = false;
+    hata21 = false;
+    hata22 = false;
+    hata23 = false;
+    hata24 = false;
+    hata25 = false;
+    hata26 = false;
+    hata27 = false;
+    hata28 = false;
+    hata29 = false;
+    hata30 = false;
+    hata31 = false;
+    hata32 = false;
+    hata33 = false;
+    hata34 = false;
+    hata35 = false;
+  }
+
+  if ( (hata1 == false) && (hata2 == false) &&
+       (hata3 == false) && (hata4 == false) &&
+       (hata5 == false) && (hata6 == false) &&
+       (hata7 == false) && (hata8 == false) &&
+       (hata9 == false) && (hata10 == false) &&
+       (hata11 == false) && (hata12 == false) &&
+       (hata13 == false) && (hata14 == false) &&
+       (hata15 == false) && (hata16 == false) &&
+       (hata17 == false) && (hata18 == false) &&
+       (hata19 == false) && (hata20 == false) &&
+       (hata21 == false) && (hata22 == false) &&
+       (hata23 == false) && (hata24 == false) &&
+       (hata25 == false) && (hata26 == false) &&
+       (hata27 == false) && (hata28 == false) &&
+       (hata29 == false) && (hata30 == false) &&
+       (hata31 == false) && (hata32 == false) &&
+       (hata33 == false) && (hata34 == false) &&
+       (hata35 == false))
+  {
+    hata = false;
+  }
+
+  return hata;
+}
+
+bool kontrol = false;
+void checkRFIDcard()
+{
+  unsigned short sayi1, sayi2, sayi3;
+
+  sayi1 = mfrc522.PICC_IsNewCardPresent();
+  sayi2 = mfrc522.PICC_IsNewCardPresent();
+  sayi3 = mfrc522.PICC_IsNewCardPresent();
+
+  if ((sayi1 + sayi2 + sayi3) > 0) {
+
+    mfrc522.PICC_ReadCardSerial(); //read the tag data
+    //mfrc522.PICC_DumpToSerial(&(mfrc522.uid)); //kart numarasini ogrenmek icin acilacak, normalde kapali kalmasi gerekiyor, hata veriyor
+
+    if (dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size))
+    {
+      kontrol = true;
+      Serial.println("ok");
+    }
+    else
+    {
+      kontrol = false;
+      Serial.println("yok");
+
+  LCD.setCursor(0,1);       
+  LCD.print("YANLIS ID KART      "); 
+ 
+    }
+  }
+  else
+  {
+    kontrol = false;
+    Serial.println("yok1");
+
+  LCD.init();          
+  LCD.setCursor(0,1);      
+  LCD.print("ID KART OKUTUNUZ"); 
+
+  }
+}
+void initRFIDcardRead() {
+    //RFID Settings
+  SPI.begin();      // Init SPI bus
+  mfrc522.PCD_Init();   // Init MFRC522
+  mfrc522.PCD_DumpVersionToSerial();  // Show details of PCD - MFRC522 Card Reader details
+}
+void setup()
+{
+  int i;
+  //randomSeed(analogRead(5)); //.kbv Due does not like A0
+  pinMode(A0, OUTPUT); //.kbv mcufriend have RD on A0
+  digitalWrite(A0, HIGH);
+
+  pinMode(ROLE1_PIN, OUTPUT); 
+  pinMode(ROLE2_PIN, OUTPUT); 
+ 
+  pinMode(A5, INPUT);
+
+  LCD.init();          
+ LCD.backlight();       
+ LCD.print("BudaBizdenOlsun");
+delay (10);
+ //LCD.clear ();
+
+  Serial.begin(9600);
+  Serial.println(" ");
+  Serial.println("Buda Bizden Olsun");
+
+  //RFID Settings
+ initRFIDcardRead();
+}
+
+short ekranTakip = 0;
+
+void loop()
+{
+  checkRFIDcard();
+  if (kontrol)
+  {
+    if (ekranTakip == 0)
+    {
+      Serial.println("USR_OK");
+      digitalWrite(ROLE1_PIN, true);
+
+ LCD.clear();          
+ LCD.setCursor(0,0);       
+ LCD.print("HOS GELDINIZ"); 
+ 
+      delay(10);
+      initRFIDcardRead();
+
+      ekranTakip = 1;
+
+    }
+  }
+  else
+  {
+    if (ekranTakip == 1)
+    {
+      Serial.println("USR_NAN");
+      digitalWrite(ROLE1_PIN, false);
+
+  LCD.init();          
+  LCD.setCursor(0,1);      
+  LCD.print("ID KART OKUTUNUZ"); 
+
+      delay(10);
+      initRFIDcardRead();  // adaptör takıldığında kartta oluşan güürltüyü silip RFID nin sağlıklı çalışmasını sağlıyor.
+
+      ekranTakip = 0;
+      
+    }
+  }
+
+}
