@@ -1,0 +1,157 @@
+/* 
+
+# Buda-Bizden-Olsun
+Buda Bizden Olsun farkı ile 
+
+ * 
+ * IR sensor ile ev aydınlatması
+ * 
+ */
+
+#include <IRremote.h>
+
+
+// LG Kumanda Tuşlarına göre
+
+#define IR_Bahce      0x20DF6897  // 6
+#define IR_Havuz      0x20DF9867  // 9
+#define IR_Salon      0x20DF08F7 //0
+#define IR_Zemin      0x20DFA857 //5
+#define IR_WC         0x20DF8917  // 
+#define IR_Birinci    0x20DF8877 //1
+#define IR_ikinci     0x20DF48B7 //2
+#define IR_Ucuncu     0x20DFC837 //3
+#define IR_Balkon     0x20DF28D7  // 4
+
+
+
+int receiver_pin = A2;
+
+int led_bahce   = 2; // gri (B)
+int led_havuz   = 3;
+int led_salon   = 4; // siyah
+int led_zemin   = 5; // mavi
+int led_wc      = 6;
+int led_salonM  = 7; // gri
+int led_birinci = 8; // beyaz
+int led_ikinci  = 9; // yeşil
+int led_ucuncu  = 10; //pembe
+int led_balkon  = 11; // kırmızı
+
+int Home_State [] = {0,0,0,0,0,0,0,0,0};
+
+IRrecv receiver (receiver_pin);
+decode_results output;
+
+void setup() {
+
+  Serial.begin (9600);
+  receiver.enableIRIn ();
+ 
+  pinMode (led_salon, OUTPUT);
+  pinMode (led_zemin, OUTPUT);
+  pinMode (led_birinci, OUTPUT);
+  pinMode (led_ikinci, OUTPUT);
+  pinMode (led_ucuncu, OUTPUT);
+  pinMode (led_balkon, OUTPUT);
+  pinMode (led_bahce, OUTPUT);
+  pinMode (led_havuz, OUTPUT);
+  pinMode (siren, OUTPUT);
+
+}
+
+void loop() {
+
+  if (receiver.decode (&output)) {
+    unsigned int value = output.value;
+    switch (value) {
+      case IR_Salon:
+
+        if (Home_State [1] ==1) {
+          digitalWrite (led_salon, LOW);
+          digitalWrite (led_salonM, LOW);
+          Home_State [1] = 0; 
+        } else {
+          digitalWrite (led_salon, HIGH);
+          digitalWrite (led_salonM, HIGH);
+          Home_State [1] = 1;
+        }
+        break;
+        
+        case IR_Zemin:
+        if (Home_State [2] ==1) {
+          digitalWrite (led_zemin, LOW);
+          Home_State [2] = 0; 
+        } else {
+          digitalWrite (led_zemin, HIGH);
+          Home_State [2] = 1;
+        }
+        break;
+
+        case IR_Birinci :
+        if (Home_State [3] ==1) {
+          digitalWrite (led_birinci, LOW);
+          Home_State [3] = 0; 
+        } else {
+          digitalWrite (led_birinci, HIGH);
+          Home_State [3] = 1;
+        }
+        break;
+
+        case IR_ikinci :
+        if (Home_State [4] ==1) {
+          digitalWrite (led_ikinci, LOW);
+          Home_State [4] = 0; 
+        } else {
+          digitalWrite (led_ikinci, HIGH);
+          Home_State [4] = 1;
+        }
+        break;
+
+        case IR_Ucuncu :
+        if (Home_State [5] ==1) {
+          digitalWrite (led_ucuncu, LOW);
+          Home_State [5] = 0; 
+        } else {
+          digitalWrite (led_ucuncu, HIGH);
+          Home_State [5] = 1;
+        }
+        break;
+
+        case IR_Balkon :
+        if (Home_State [6] ==1) {
+          digitalWrite (led_balkon, LOW);
+          Home_State [6] = 0; 
+        } else {
+          digitalWrite (led_balkon, HIGH);
+          Home_State [6] = 1;
+        }
+        break;
+
+        case IR_Bahce :
+        if (Home_State [7] ==1) {
+          digitalWrite (led_bahce, LOW);
+          Home_State [7] = 0; 
+        } else {
+          digitalWrite (led_bahce, HIGH);
+          Home_State [7] = 1;
+        }
+        break;
+
+        case IR_Havuz : 
+        if (Home_State [8] ==1) {
+          digitalWrite (led_havuz, LOW);
+          Home_State [8] = 0; 
+        } else {
+          digitalWrite (led_havuz, HIGH);
+          Home_State [8] = 1;
+        }
+        break;
+        
+    }
+    Serial.println(output.value, HEX); 
+    receiver.resume(); 
+    
+  }
+
+}
