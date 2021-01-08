@@ -1,0 +1,91 @@
+/*
+ * ************Buda Bizden Olsun*****************
+ * 
+ * 
+ * https://github.com/projelerim-arduino/Buda-Bizden-Olsun
+ * 
+ * YOUTUBE Kanalımız 
+ * 
+ * https://www.youtube.com/channel/UCVnVbX4pFV01Nu7zUbV8exA
+ * 
+ */
+/*
+   DS1302'nin Arduino'ya Baplantı Pinleri.
+   DS1302:  CE pin    -> Arduino Digital 2  (RST)
+            I/O pin   -> Arduino Digital 3  (DAT)
+            SCLK pin  -> Arduino Digital 4  (CLK)
+*/
+
+#
+#include <LCDWIKI_GUI.h> //Core graphics library
+#include <LCDWIKI_KBV.h> //Hardware-specific library
+
+LCDWIKI_KBV mylcd(ILI9486,40,38,39,-1,41); //model,cs,cd,wr,rd,reset
+
+//define some colour values
+#define  BLACK   0x0000
+#define BLUE    0x001F
+#define RED     0xF800
+#define GREEN   0x07E0
+#define CYAN    0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW  0xFFE0
+#define WHITE   0xFFFF
+
+#include <DS1302.h>
+// DS1302'nin Arduino'da Bağlayacağımız Pin Atamaları.
+DS1302 rtc(A15, A14, A13);   // (RST, DATA, CLK)
+
+void setup()
+{
+  mylcd.Init_LCD ();
+  mylcd.Fill_Screen (BLACK);
+
+  mylcd.Set_Rotation(1); 
+  mylcd.Set_Text_Mode(0);
+  mylcd.Set_Text_colour(RED);
+  mylcd.Set_Text_Back_colour(BLACK);
+  mylcd.Set_Text_Size(4); 
+  mylcd.Print_String("Buda Bizden Olsun", CENTER, 10); 
+
+ // Burada Saati Çalışma Moduna Ayarlayıp ve Yazma Korumasını Devre Dışı Bırakmalıyız.
+ rtc.halt(false);
+ rtc.writeProtect(false);
+
+ 
+ /**********************************************************************************
+    İlk yüklememizde aşağıdaki üç satırı aktive edip DS1302'ye gercek zamanı yazmamız gerekmektedir.
+    Doğru çalıştığını gördüğümüzde, aşağıdaki satırları pasiv edip tekrar göndermeliyiz.
+    Aksi takdirde gücü kesip verdiğinizde yada kapatıp açtığınızda zaman ayarınız yanlış olur.
+    DS1302 Kütüphanesinde değişiklik yapılmıştır. Orjinal kütüphane kullanıldığında;
+    rtc.setDOW ingilizce tanımı büyük harf ile yazılmalıdır.
+    rtc.setDate kısmında 8.01.2021 şeklinde yazılmalkıdır.    
+**********************************************************************************/
+/*
+ rtc.setDOW(Cuma);          // Haftanın gününü "Pazartesi" olarak ayarladık.
+ rtc.setTime(20, 37, 00);       // Saati 24 saat formatında mevcut zamanı yazmamız gerekiryor.
+ rtc.setDate(8, Ocak, 2021);  // Tarihi olarak mevcut tarihi yazmamız gerekiyor.
+*/
+
+}
+
+void loop()
+{
+
+ // Saati TFT Ekrana Gönderiyouz
+
+  mylcd.Set_Text_colour(WHITE);
+  mylcd.Set_Text_Size(8);
+  mylcd.Print_String(rtc.getTimeStr(), CENTER, 100);
+
+  // Tarihi TFT Ekrana Gönderiyouz 
+  mylcd.Set_Text_colour(WHITE);
+  mylcd.Set_Text_Size(2.5);
+  mylcd.Print_String(rtc.getDateStr(), CENTER, 200);
+
+// Hsftanın Gününü TFT Ekrana Gönderiyouz
+  mylcd.Set_Text_colour(WHITE);
+  mylcd.Set_Text_Size(2.5);
+  mylcd.Print_String(rtc.getDOWStr(), CENTER, 230);
+
+}
