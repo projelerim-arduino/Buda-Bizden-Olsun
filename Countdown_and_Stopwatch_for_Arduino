@@ -1,0 +1,297 @@
+/*
+ *  Buda Bizden Olsun
+ * 
+ *  Countdown and Stopwatch for Arduino
+ *  
+ *  https://github.com/projelerim-arduino/Buda-Bizden-Olsun
+ *  
+ *  https://www.youtube.com/channel/UCVnVbX4pFV01Nu7zUbV8exA
+ * 
+ */
+
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd (0x27, 20, 4);
+
+const int bt_Stopwatch      = 8;  
+
+const int bt_StartStop    = 9; 
+const int bt_up           = 10;  
+const int bt_down         = 11;
+const int bt_setting      = 12; 
+
+const int buzzer          = 6; 
+const int relay           = 5;
+
+int time_s  = 0; 
+int time_m  = 0; 
+int time_h  = 0; 
+
+int time_ms  = 0; 
+int time_ss  = 0; 
+int time_mm  = 0;
+int time_hh  = 0; 
+
+bool run = true;
+
+bool min_flag = true;
+bool hrs_flag = true;
+
+void setup () {
+
+  lcd.init ();
+  lcd.backlight ();
+  lcd.clear ();
+  
+  lcd.setCursor (0,0);
+  lcd.print ("Buda Bizden Olsun");
+  
+  pinMode ( bt_Stopwatch, INPUT_PULLUP);  
+  pinMode ( bt_StartStop, INPUT_PULLUP);  
+  pinMode ( bt_up, INPUT_PULLUP);   
+  pinMode ( bt_down, INPUT_PULLUP);  
+  pinMode ( bt_setting, INPUT_PULLUP);  
+  
+  pinMode ( buzzer, OUTPUT);  
+  pinMode ( relay, OUTPUT);  
+
+  delay (2500);
+  lcd.clear ();
+  lcd_init ();
+}
+
+void loop () {
+  
+  Countdown ();
+  Stopwatch ();
+  
+  }
+
+void Countdown () {
+ 
+
+  if (digitalRead (bt_StartStop) == LOW) {
+    lcd.clear ();
+    delay (250);
+    run = true;
+    while (run) {
+      if (digitalRead (bt_StartStop) == LOW) {
+        delay (1000);
+        if (digitalRead (bt_StartStop) == LOW) {
+          digitalWrite (relay, LOW);
+          lcd.clear ();
+          lcd.setCursor (0,0);
+          lcd.print ("Countdown is Stopped");
+          lcd.setCursor (0,1);
+          lcd.print ("--------------------");
+          delay (2000);
+          run = false;
+          lcd_init ();
+          break;
+        }
+      }
+      digitalWrite (relay, HIGH);
+      time_s = time_s -1;
+      delay (1000);
+      if (time_s == -1) {
+        time_s = 59;
+        time_m = time_m -1;
+      }
+      if (time_m == -1) {
+        time_m = 59;
+        time_h = time_h -1;
+      }
+      if (time_h == -1) time_h = 0;
+
+      lcd.setCursor (0,1);
+      lcd.print ("____________________");
+
+      lcd.setCursor (4,0);
+      if (time_h <= 9) {
+        lcd.print ("0");
+      }
+      lcd.print (time_h);
+      lcd.print (":");
+
+      if (time_m <= 9) {
+        lcd.print ("0");
+      }
+      lcd.print (time_m);
+      lcd.print (":");
+
+      if (time_s <=9 ) {
+        lcd.print ("0");
+      }
+      lcd.print (time_s);
+
+      if (time_h == 0 && time_m == 0 && time_s == 0) {
+        digitalWrite (relay, LOW);
+        lcd.setCursor (4,0);
+        run = false;
+        for (int i = 0; i < 20; i++) {
+          digitalWrite (buzzer, HIGH);
+          delay (100);
+          digitalWrite (buzzer, LOW);
+          delay (100);
+
+          lcd.setCursor (0,1);
+          lcd.print ("       Finish       ");
+        }
+        lcd_init ();
+      }
+    }
+   }
+   if (digitalRead (bt_setting) == LOW) {
+    delay (500);
+    while (min_flag) {
+      lcd.clear ();
+      lcd.setCursor (0,0);
+      lcd.print ("Set Minute:");
+      lcd.print (time_m);
+      delay (100);
+
+      if (digitalRead (bt_up) == LOW) {
+        time_m = time_m +1;
+        if (time_m >= 60 ) time_m = 0;
+        delay (100);
+      }
+       if (digitalRead (bt_down) == LOW) {
+        time_m = time_m -1;
+        if (time_m <= - 1 ) time_m = 0;
+        delay (100);
+      }
+      if (digitalRead (bt_setting) == LOW) {
+        min_flag = false;
+        delay (250);
+      }  
+    }
+    while (hrs_flag) {
+      lcd.clear ();
+      lcd.setCursor (0,0);
+      lcd.print ("Set Hour:");
+      lcd.print (time_h);
+      delay (100);
+
+      if (digitalRead (bt_up) == LOW) {
+        time_h = time_h +1;
+        if (time_h > 23) time_h = 0;
+        delay (100);
+      }
+      if (digitalRead (bt_down) == LOW) {
+         time_h = time_h -1;
+        if (time_h <= -1) time_h = 0;
+        delay (100);
+      }
+      if (digitalRead (bt_setting) == LOW) {
+        hrs_flag = false;
+        delay (250);
+      }
+    }
+    if (time_h == 0 && time_m == 0) {
+      lcd.clear ();
+      lcd.setCursor (0,0);
+      lcd.print ("  Invelid Time  ");
+      delay (2000);
+    }
+    else { }
+    lcd_init ();
+  }
+}
+
+void Stopwatch () {
+
+  if (digitalRead (bt_Stopwatch) == LOW) {
+    
+    lcd.clear ();
+    delay (250);
+   
+    run = true;
+    while (run) {
+      if (digitalRead (bt_Stopwatch) == LOW) {
+        delay (1000);
+        
+        if (digitalRead (bt_Stopwatch) == LOW) {
+          digitalWrite (relay, LOW);
+          
+          lcd.clear ();
+          lcd.setCursor (0,0);
+          lcd.print ("Stopwatch is paused.");
+          lcd.setCursor (0,1);
+           
+      lcd.setCursor (4,2);
+      if (time_hh <= 9) {
+        lcd.print ("0");
+      }
+      lcd.print (time_hh);
+      lcd.print (":");
+
+      if (time_mm <= 9) {
+        lcd.print ("0");
+      }
+      lcd.print (time_mm);
+      lcd.print (":");
+
+      if (time_ss <=9 ) {
+        lcd.print ("0");
+      }
+      lcd.print (time_ss);
+        
+          delay (4000);
+         
+          lcd_init ();
+          break;
+        }
+      }
+      
+      digitalWrite (relay, HIGH);
+      time_ss = time_ss +1;
+      delay (1000);
+      if (time_ss == 59) {
+        time_ss = 0;
+        time_mm = time_mm +1;
+      }
+      if (time_mm == 59) {
+        time_mm = 0;
+        time_hh = time_hh +1;
+      }
+      if (time_hh == 23) time_hh = 0;
+
+      lcd.setCursor (0,1);
+      lcd.print ("_ _ _ _ _ _ _ _ _ _ ");
+
+      lcd.setCursor (4,0);
+      if (time_hh <= 9) {
+        lcd.print ("0");
+      }
+      lcd.print (time_hh);
+      lcd.print (":");
+
+      if (time_mm <= 9) {
+        lcd.print ("0");
+      }
+      lcd.print (time_mm);
+      lcd.print (":");
+
+      if (time_ss <=9 ) {
+        lcd.print ("0");
+      }
+      lcd.print (time_ss);
+   }
+  }  
+ }
+
+void lcd_init () {
+
+  lcd.clear ();
+  lcd.setCursor (0,0);
+  lcd.print ("Stopwatch=> Buton: 8");
+  lcd.setCursor (0,1);
+  lcd.print ("Countdown=> Buton:9");
+  lcd.setCursor (0,2);
+  lcd.print ("Setting => Buton: 12");
+   lcd.setCursor (0,3);
+  lcd.print ("Up =>10 / Down => 11");
+
+  min_flag = true;
+  hrs_flag = true;
+  delay (500);
+}
