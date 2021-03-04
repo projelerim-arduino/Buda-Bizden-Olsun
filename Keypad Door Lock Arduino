@@ -1,0 +1,224 @@
+/*
+ *        Keypad Door Lock Arduino
+ * 
+ * https://github.com/projelerim-arduino/Buda-Bizden-Olsun
+ * 
+ * YOUTUBE Kanalımız 
+ * 
+ * https://www.youtube.com/channel/UCVnVbX4pFV01Nu7zUbV8exA
+ *  
+ * 
+ */
+
+#include <Keypad.h>
+#include <EEPROM.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd (0x27, 20, 4);
+
+char password [4];
+char pass [4], pass_1 [4];
+
+int i=0;
+
+char customKey = 0;
+
+const byte ROWS = 4; // four rows
+const byte COLS = 4; // four colums
+
+char hexaKeys [ROWS] [COLS] = {
+ {'1', '4', '7', '*'},
+ {'2', '5', '8', '0'},
+ {'3', '6', '9', '#'},
+ {'A', 'B', 'C', 'D'} 
+};
+
+byte rowPins[ROWS] = {12, 11, 10, 9};
+byte colPins[COLS] = {8, 7, 6, 5}; 
+
+Keypad customKeypad = Keypad (makeKeymap (hexaKeys), rowPins, colPins, ROWS, COLS);
+
+int Relay   = 3;
+int Buzzer  = 2;
+
+
+void setup() {
+
+  Serial.begin (9600);
+
+  lcd.init ();
+  lcd.backlight ();
+
+  pinMode (Relay, OUTPUT);
+  pinMode (Buzzer, OUTPUT);
+
+ lcd.setCursor (0,0);
+ lcd.print ("Sifreli");
+ lcd.setCursor (0,1);
+ lcd.print ("Kapi    ");
+ Serial.println ("Sifreli Kapi Klidi");
+  
+  delay (2000);
+
+  lcd.clear ();
+  lcd.print ("Sifre ");
+  lcd.setCursor (0,1);
+  lcd.print ("Giriniz");
+  Serial.print ("Sifre Giriniz : ");
+
+  lcd.setCursor (0,1);
+
+  for (int j=0; j<4; j++)
+  EEPROM.write (j, j+49);
+
+  for (int j=0; j<4; j++)
+  pass [j] = EEPROM.read (j); 
+
+}
+
+void loop() {
+
+  customKey = customKeypad.getKey ();
+
+  if (customKey == 'A')       // Şifreyi değiştirmek için kullanacağımız tuş
+  change ();
+  
+  if (customKey) {
+    password [i++] = customKey;
+   
+
+    lcd.print ('*');          // LCD ekranda şifre için tuş karakterlerini gizliyoruz
+    //lcd.print (customKey);  // LCD ekranda şifre için tuş karakterlerini gösteriyoruz
+    Serial.println (customKey);
+    Sound ();
+    
+  }
+  
+  if (i == 4) {
+    delay (200);
+    for (int j=0; j<4; j++)
+    pass [j] = EEPROM.read (j);
+
+    if (! (strncmp (password, pass, 4))) {
+      digitalWrite (Relay, HIGH);
+      Sound ();
+
+      lcd.clear ();
+      lcd.print ("Dogru");
+      lcd.setCursor (0,1);
+       lcd.print ("Sifre");
+      Serial.println ("Sifre Kabul Edildi");
+
+      delay (2000);
+
+      lcd.clear ();
+      lcd.print ("Sifre ");
+      lcd.setCursor (0,1);
+      lcd.print ("Giriniz");
+      Serial.println ("Sifre Giriniz ");
+
+      
+      lcd.setCursor (0,1);
+      i = 0;
+      digitalWrite (Relay, LOW);
+          }
+
+          else {
+            //digitalWrite (11, HIGH);
+            digitalWrite (Buzzer, HIGH);
+
+            lcd.clear ();
+            lcd.print ("Yanlis");
+            lcd.setCursor (0,1);
+            lcd.print ("Sifre");
+            Serial.print ("Hatali Sifre Girdiniz");
+            delay (2000);
+
+            lcd.clear ();
+            lcd.print ("Sifre");
+            lcd.setCursor (0,1);
+            lcd.print ("Giriniz");
+            Serial.println ("Sifre Giriniz : ");
+
+            lcd.setCursor (0,1);
+            i=0;
+            digitalWrite (Buzzer, LOW);
+    }
+  }
+}
+
+void change () {
+  
+  int j=0;
+
+  lcd.clear ();
+  lcd.print ("Change");
+  Serial.println ("Sifre Degistirme Ekrani ");
+  Serial.println ("Mevcut Sifreyi Giriniz ");
+  
+  lcd.setCursor (0,1);
+  lcd.print ("Eski S.G");
+
+  lcd.setCursor (0,1);
+    while (j<4) {
+      char key=customKeypad.getKey ();
+      if (key) {
+        pass_1 [j++] = key;
+        lcd.print ("*");  // lcd.print (key);
+        Serial.print (key);
+        Sound ();
+      }
+      key = 0;
+    }
+    delay (500);
+
+    if ((strncmp (pass_1, pass, 4))) {
+      lcd.clear ();
+      lcd.print ("Yanlis S.");
+      Serial.println ("Yanlis Sifre Girdiniz ");
+
+      lcd.setCursor (0,1);
+      lcd.print ("Tekrar D.");
+      Serial.println ("Tekrar Deneyiniz ");
+      delay (1000);      
+    }
+      else {
+        j=0;
+
+        lcd.clear ();
+        lcd.print ("Yeni S.");
+        Serial.println ("Yeni Sifre Giriniz");
+
+        lcd.setCursor (0,1);
+
+        while (j<4) {
+          char key=customKeypad.getKey ();
+          if (key) {
+            pass [j] = key;
+            lcd.print ("*");
+            Serial.print (key);
+            EEPROM.write (j, key);
+            j++;
+            Sound ();
+          }
+        }
+        lcd.print ("Bitti");
+        Serial.println (" İslem Tamamlandi ...");
+        delay (1000);
+      }
+
+      lcd.clear ();
+
+      lcd.print ("Sifre G.");
+      Serial.println ("Sifre Giriniz : ");
+
+      lcd.setCursor (0,1);
+      customKey = 0;  
+}
+
+void Sound () {
+
+  digitalWrite (Buzzer, HIGH);
+  delay (20);
+  digitalWrite (Buzzer, LOW);
+}
