@@ -1,0 +1,759 @@
+/*
+ *              Buda Bizden Olsun
+ * 
+ *  Arduino Real Time Clock and 2 Alarm
+ *  
+ *  https://github.com/projelerim-arduino/Buda-Bizden-Olsun
+ *  
+ *  https://www.youtube.com/channel/UCVnVbX4pFV01Nu7zUbV8exA
+ * 
+ */
+
+#include <Wire.h>
+#include <RTClib.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd (0x27, 20, 4);
+RTC_DS1307 RTC;
+
+int Button_Set_Menu       = 12;
+int Button_Up             = 11;
+int Button_Down           = 10;
+int Button_Alarm_Switch_1 = 8;
+int Button_Alarm_Switch_2 = 9;
+
+#define LED 13
+#define buzzer 6
+
+int Hour;
+int Min;
+int Year;
+int Month;
+int Day;
+int Menu;
+int set_Alarm_1;
+int set_Alarm_2;
+
+uint8_t alarm_Hours_1 = 0, alarm_Minutes_1 =0;
+uint8_t alarm_Hours_2 = 0, alarm_Minutes_2 =0;
+
+void setup() {
+
+  lcd.init ();
+ // lcd.backlight ();
+  lcd.clear ();
+
+  pinMode (Button_Set_Menu, INPUT_PULLUP);
+  pinMode (Button_Up, INPUT_PULLUP);
+  pinMode (Button_Down, INPUT_PULLUP);
+  pinMode (Button_Alarm_Switch_1, INPUT_PULLUP);
+   pinMode (Button_Alarm_Switch_2, INPUT_PULLUP);
+  pinMode (LED, OUTPUT);
+  pinMode (buzzer, OUTPUT);
+
+  print_Alarm_Off_1 ();
+  print_Alarm_Off_2 ();
+  
+  Serial.begin (9600);
+
+  Wire.begin ();
+  RTC.begin ();
+
+  if (! RTC.isrunning () ) {
+    Serial.println ("RTC is NOT running! ");
+    RTC.adjust (DateTime (__DATE__,__TIME__));
+  }
+
+  int Menu = 0;
+   
+}
+
+void loop() {
+
+  if (digitalRead (Button_Set_Menu) == LOW) 
+  {
+    Menu = Menu +1;
+      }
+
+      if ((digitalRead (Button_Up) ==LOW) && (digitalRead (Button_Down) == LOW)) 
+        {
+          Display_Set_Hour_Alarm_1 ();
+          Display_Set_Minute_Alarm_1 ();
+
+          lcd.clear ();
+          lcd.setCursor (5,0);
+          lcd.print ("Alarm_1");
+          
+          lcd.setCursor (5,1);
+          lcd.print (alarm_Hours_1, DEC);
+          lcd.print (":");
+          
+          lcd.print (alarm_Minutes_1, DEC);
+          delay (1000);
+          
+          lcd.clear ();    
+      }
+
+ if ((digitalRead (Button_Up) ==LOW) && (digitalRead (Button_Down) == LOW)) 
+        {
+          Display_Set_Hour_Alarm_2 ();
+          Display_Set_Minute_Alarm_2 ();
+
+          lcd.clear ();
+          lcd.setCursor (5,0);
+          lcd.print ("Alarm_2");
+          
+          lcd.setCursor (5,1);
+          lcd.print (alarm_Hours_2, DEC);
+          lcd.print (":");
+          
+          lcd.print (alarm_Minutes_2, DEC);
+          delay (1000);
+          
+          lcd.clear ();    
+      }
+
+
+
+
+      if (Menu == 0) {
+        Display_Date_Time ();
+        Alarm_1 ();
+        Alarm_2 ();
+      }
+
+      if (Menu == 1) {
+        Display_Set_Hour ();
+      }
+
+      if (Menu == 2) {
+        Display_Set_Minute ();
+      }
+
+      if (Menu == 3) {
+        Display_Set_Year ();
+      }
+
+      if (Menu == 4) {
+        Display_Set_Month ();
+      }
+      if (Menu == 5) {
+        Display_Set_Day ();
+      }
+      if (Menu == 6) {
+        Saving ();
+        delay (500);
+        Menu = 0;
+      }
+      delay (100);     
+}
+
+void Display_Date_Time () {
+  DateTime now = RTC.now ();
+
+// Hour
+
+  lcd.clear ();
+
+  lcd.setCursor (6,0);
+
+  if (now.hour () <=9) {
+    lcd.print ("0");
+  }
+
+  lcd.print (now.hour (), DEC);
+  Hour =now.hour ();
+  lcd.print (":");
+
+  if (now.minute () <=9) {
+    lcd.print ("0");
+  }
+
+  lcd.print (now.minute (), DEC);
+
+  Min =now.minute ();
+  lcd.print (":");
+
+  if (now.second () <=9 ) {
+    lcd.print ("0");
+      }
+    lcd.print (now.second (), DEC);   
+
+// Day
+
+  lcd.setCursor(0, 1);
+    
+  if (now.day()<=9)
+  {
+    lcd.print("0");
+  }
+  
+  lcd.print(now.day(), DEC);
+  Day=now.day();
+  
+  lcd.print("/");
+  
+  if (now.month()<=9)
+  {
+    lcd.print("0");
+  }
+  
+  lcd.print(now.month(), DEC);
+  Month=now.month();
+  
+  lcd.print("/");
+  
+  lcd.print(now.year(), DEC);
+  Year=now.year();
+ 
+  char DOW[][10]={"Sunday   ","Monday   ","Tuesday  ","Wednesday","Thursday ","Friday   ","Saturday "};
+  
+  lcd.setCursor(11, 1); 
+   
+  lcd.print(DOW[now.dayOfTheWeek()]); 
+  
+}
+
+
+void Display_Set_Hour()
+{
+//     ...... Time Setting.............
+
+  lcd.clear();
+  DateTime now = RTC.now();
+  
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if(Hour == 23)
+    {
+      Hour=0;
+    }
+    else
+    {
+      Hour = Hour+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if(Hour == 0)
+    {
+      Hour = 23;
+    }
+    else
+    {
+      Hour = Hour-1;
+    }
+  }
+  lcd.setCursor(0,0);
+  lcd.print("Set Time:");
+  lcd.setCursor(0,1);
+  lcd.print(Hour,DEC);
+  delay(200);
+}
+
+
+void Display_Set_Minute()
+{
+// ...... Setting the minutes ...........
+
+  lcd.clear();
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if (Min == 59)
+    {
+      Min = 0;
+    }
+    else
+    {
+      Min = Min+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if (Min == 0)
+    {
+      Min = 59;
+    }
+    else
+    {
+      Min = Min-1;
+    }
+  }
+  lcd.setCursor(0,0);
+  lcd.print("Set Minutes : ");
+  lcd.setCursor(0,1);
+  lcd.print(Min, DEC);
+  
+  delay(200);
+}
+
+  
+void Display_Set_Year()
+{
+  
+// ........ Setting the year ..........
+
+  lcd.clear();
+  
+  if(digitalRead(Button_Up) == LOW)
+  {    
+    Year = Year+1;
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    Year = Year-1;
+  }
+  lcd.setCursor(0,0);
+  lcd.print("Set Year:");
+  
+  lcd.setCursor(0,1);
+  lcd.print(Year, DEC);
+  
+  delay(200);
+}
+
+
+void Display_Set_Month()
+{
+  
+// ....... Setting the month .........
+
+  lcd.clear();
+ 
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if (Month == 12)
+    {
+      Month = 1;
+    }
+    else
+    {
+      Month = Month+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if (Month == 1)
+    {
+      Month = 12;
+    }
+    else
+    {
+      Month = Month-1;
+    }
+  }
+  lcd.setCursor(0,0);
+  lcd.print("Set Month : ");
+  lcd.setCursor(0,1);
+  lcd.print(Month, DEC);
+  
+  delay(200);
+}
+
+
+void Display_Set_Day()
+{
+  
+// ....... Setting the day ...........
+
+  lcd.clear();
+
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if (Day == 31)
+    {
+      Day = 1;
+    }
+    else
+    {
+      Day = Day+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if (Day == 1)
+    {
+      Day = 31;
+    }
+    else
+    {
+      Day = Day-1;
+    }
+  }
+  lcd.setCursor(0,0);
+  lcd.print("Set Day : ");
+  lcd.setCursor(0,1);
+  lcd.print(Day, DEC);
+  
+  delay(200);
+}
+
+void Saving()
+{
+  
+// ...... Variable saving .......
+
+  lcd.clear();
+
+  lcd.setCursor(0,1);
+  lcd.print("Saving Progress");
+  lcd.setCursor(0,2);
+  lcd.print("Completing.....");
+  
+  RTC.adjust(DateTime(Year, Month, Day, Hour, Min, 0));
+  
+  delay(300);
+}
+
+
+void Display_Set_Hour_Alarm_1 ()
+{
+
+  
+  // ........... Setting the alarm minutes ........
+  
+  while(digitalRead(Button_Set_Menu) == HIGH){
+
+  lcd.clear();
+
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if(alarm_Hours_1 == 23)
+    {
+      alarm_Hours_1 = 0;
+    }
+    else
+    {
+      alarm_Hours_1 = alarm_Hours_1+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if(alarm_Hours_1 == 0)
+    {
+      alarm_Hours_1 = 23;
+    }
+    else
+    {
+      alarm_Hours_1 = alarm_Hours_1-1;
+    }
+  }
+  
+  lcd.setCursor(0,0);
+  lcd.print("Set Hour Alarm 1:");
+  
+  lcd.setCursor(0,1);
+  lcd.print(alarm_Hours_1, DEC);
+  
+  delay(200);
+ }
+ delay(200);
+
+ 
+}
+
+void Display_Set_Minute_Alarm_1()
+ {
+  
+  // .......... Setting the alarm minutes ..........
+  
+  while(digitalRead(Button_Set_Menu) == HIGH){ 
+
+  lcd.clear();
+  
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if (alarm_Minutes_1 == 59)
+    {
+      alarm_Minutes_1 = 0;
+    }
+    else
+    {
+      alarm_Minutes_1 = alarm_Minutes_1+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if (alarm_Minutes_1 == 0)
+    {
+      alarm_Minutes_1 = 59;
+    }
+    else
+    {
+      alarm_Minutes_1 = alarm_Minutes_1-1;
+    }
+  }
+  lcd.setCursor(0,0);
+  lcd.print("Set Minutes Alarm 1:");
+  
+  lcd.setCursor(0,1);
+  lcd.print(alarm_Minutes_1, DEC);
+  
+  delay(200);
+ }
+ delay(200);
+ 
+}
+
+void print_Alarm_On_1(){
+  
+  
+  lcd.setCursor(0,2);
+  lcd.print("Alarm 1: ");
+  
+  if (alarm_Hours_1 <= 9)
+  {
+    lcd.print("0");
+  }
+  lcd.print(alarm_Hours_1, DEC);
+  
+  lcd.print(":");
+  if (alarm_Minutes_1 <= 9)
+  {
+    lcd.print("0");
+  }
+  lcd.print(alarm_Minutes_1, DEC); 
+  
+
+}
+
+void print_Alarm_Off_1() {
+  
+  lcd.setCursor(0, 2);
+  lcd.print("Alarm 1: Off  ");  
+  
+}
+
+
+
+void Alarm_1(){
+    
+   if(digitalRead(Button_Alarm_Switch_1) == LOW)
+  {
+   set_Alarm_1 = set_Alarm_1+1;
+  }
+  if (set_Alarm_1 == 0)
+    {
+     print_Alarm_Off_1();
+     
+     noTone (buzzer);
+     
+     digitalWrite(LED,LOW);
+     }
+     
+  if (set_Alarm_1 == 1)
+    {
+
+     print_Alarm_On_1();    
+  
+     DateTime now = RTC.now();
+     
+     if ( now.hour() == alarm_Hours_1 && now.minute() == alarm_Minutes_1 )
+        {
+         lcd.noBacklight();
+         
+         DateTime now = RTC.now();
+         
+         digitalWrite(LED, HIGH);
+         
+         tone(buzzer, 880); //play the note "A5" (LA5)
+         
+         delay (300);
+         
+         tone(buzzer,698); //play the note "F6" (FA5)
+         
+         lcd.backlight();
+        }
+        
+    else
+    {
+         noTone (buzzer);          
+         digitalWrite(LED,LOW);
+        }
+    
+    } 
+  if (set_Alarm_1 == 2)
+    {
+     set_Alarm_1 = 0;
+    }
+    delay(200);
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void Display_Set_Hour_Alarm_2 ()
+{
+  // ........... Setting the alarm minutes ........
+  
+  while(digitalRead(Button_Set_Menu) == HIGH){
+
+  lcd.clear();
+
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if(alarm_Hours_2 == 23)
+    {
+      alarm_Hours_2 = 0;
+    }
+    else
+    {
+      alarm_Hours_2 = alarm_Hours_2+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if(alarm_Hours_2 == 0)
+    {
+      alarm_Hours_2 = 23;
+    }
+    else
+    {
+      alarm_Hours_2 = alarm_Hours_2-1;
+    }
+  }
+  
+  lcd.setCursor(0,0);
+  lcd.print("Set Hour Alarm 2:");
+  
+  lcd.setCursor(0,1);
+  lcd.print(alarm_Hours_2, DEC);
+  
+  delay(200);
+ }
+ delay(200);
+}
+
+void Display_Set_Minute_Alarm_2()
+ {
+  // .......... Setting the alarm minutes ..........
+  
+  while(digitalRead(Button_Set_Menu) == HIGH){ 
+
+  lcd.clear();
+  
+  if(digitalRead(Button_Up) == LOW)
+  {
+    if (alarm_Minutes_2 == 59)
+    {
+      alarm_Minutes_2 = 0;
+    }
+    else
+    {
+      alarm_Minutes_2 = alarm_Minutes_2+1;
+    }
+  }
+   if(digitalRead(Button_Down) == LOW)
+  {
+    if (alarm_Minutes_2 == 0)
+    {
+      alarm_Minutes_2 = 59;
+    }
+    else
+    {
+      alarm_Minutes_2 = alarm_Minutes_2-1;
+    }
+  }
+  lcd.setCursor(0,0);
+  lcd.print("Set Minutes Alarm 2:");
+  
+  lcd.setCursor(0,1);
+  lcd.print(alarm_Minutes_2, DEC);
+  
+  delay(200);
+ }
+ delay(200);
+}
+
+void print_Alarm_On_2(){
+  
+  lcd.setCursor(0,3);
+  lcd.print("Alarm 2: ");
+  delay (200);
+  
+  if (alarm_Hours_2 <= 9)
+  {
+    lcd.print("0");
+  }
+  lcd.print(alarm_Hours_2, DEC);
+  
+  lcd.print(":");
+  if (alarm_Minutes_2 <= 9)
+  {
+    lcd.print("0");
+  }
+  lcd.print(alarm_Minutes_2, DEC); 
+  delay (2000);
+
+}
+
+void print_Alarm_Off_2() {
+  
+  lcd.setCursor(0, 3);
+  lcd.print("Alarm 2: Off  ");  
+  delay (2000);
+}
+
+
+
+void Alarm_2(){
+  
+   if(digitalRead(Button_Alarm_Switch_2) == LOW)
+  {
+   set_Alarm_2 = set_Alarm_2+1;
+  }
+  if (set_Alarm_2 == 0)
+    {
+     print_Alarm_Off_2();
+     
+     noTone (buzzer);
+     
+     digitalWrite(LED,LOW);
+     }
+     
+  if (set_Alarm_2 == 1)
+    {
+
+     print_Alarm_On_2();    
+  
+     DateTime now = RTC.now();
+     
+     if ( now.hour() == alarm_Hours_2 && now.minute() == alarm_Minutes_2 )
+        {
+         lcd.noBacklight();
+         
+         DateTime now = RTC.now();
+         
+         digitalWrite(LED, HIGH);
+         
+         tone(buzzer, 880); //play the note "A5" (LA5)
+         
+         delay (300);
+         
+         tone(buzzer,698); //play the note "F6" (FA5)
+         
+         lcd.backlight();
+        }
+        
+    else
+    {
+         noTone (buzzer);          
+         digitalWrite(LED,LOW);
+        }
+    
+    } 
+  if (set_Alarm_2 == 2)
+    {
+     set_Alarm_2 = 0;
+    }
+    delay(200);
+}
